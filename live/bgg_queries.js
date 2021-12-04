@@ -10,8 +10,6 @@ var interval;
 var index = 0;
 var item_count = 0;
 
-
-
 function update_database() {
 
     //get our list of ids from firestore
@@ -107,7 +105,13 @@ function db_update_step(){
 
     current_item = query_list.pop();
     id('update-info').innerText = 'Making request...';
-    fetch(game_query(current_item))
+    
+    get_game_data(game_query(current_item));
+
+}
+
+async function get_game_data(link){
+    fetch(link)
         .then(response => response.text())
         .then(data => {
             let parser                  = new DOMParser();
@@ -121,6 +125,30 @@ function db_update_step(){
             let minage                  = game.querySelector('minage').attributes.value.nodeValue;
             let image                   = game.querySelector('image').innerHTML;
             let thumbnail               = game.querySelector('thumbnail').innerHTML;
+            let description             = game.querySelector('description').innerHTML;
+            let polls                   = game.querySelectorAll('poll');
+            let arr = [];
+            polls.forEach(poll => {
+                let results = poll.querySelectorAll('results');
+                let subArr = [];
+                results.forEach(entry =>{
+                    let subResults = entry.querySelectorAll('result');
+                    let data = {};
+                    if (results.length > 1) data.numplayers = entry.attributes.numplayers.nodeValue;
+                    subResults.forEach(result =>{
+                        data[result.attributes.value.nodeValue] = result.attributes.numvotes.nodeValue;
+                    })
+                    subArr.push(data);
+                })
+                arr.push({
+                    name: poll.attributes.name.nodeValue,
+                    title: poll.attributes.title.nodeValue,
+                    totalvotes: poll.attributes.totalvotes.nodeValue,
+                    results: subArr
+                });
+            });
+            
+            polls = arr;
             
             index++;
             id('update-info').innerText = 
@@ -130,7 +158,7 @@ function db_update_step(){
             
             id('game-img').src = thumbnail;
 
-            db.collection("games").doc(current_item).set({
+            let obj = {
                 name,
                 image,
                 thumbnail,
@@ -138,8 +166,12 @@ function db_update_step(){
                 minplayers,
                 maxplayers,
                 playingtime,
-                minage
-            })
+                minage,
+                description,
+                polls
+            };
+            console.log(obj);
+            db.collection("games").doc(current_item).set(obj);
         })
 }
 
