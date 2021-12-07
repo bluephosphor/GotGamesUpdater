@@ -114,6 +114,7 @@ async function get_game_data(link){
     fetch(link)
         .then(response => response.text())
         .then(data => {
+            //get our top level data from the xml.....
             let parser                  = new DOMParser();
             let xmlDOM                  = parser.parseFromString(data, 'application/xml');
             let game                    = xmlDOM.querySelector('item');
@@ -126,20 +127,29 @@ async function get_game_data(link){
             let image                   = game.querySelector('image').innerHTML;
             let thumbnail               = game.querySelector('thumbnail').innerHTML;
             let description             = game.querySelector('description').innerHTML;
+            
+            //now time for polls
             let polls                   = game.querySelectorAll('poll');
-            let arr = [];
+            let arr = []; 
+            let recplayers = 0;
             polls.forEach(poll => {
+                //we're gonna iterate through each of them and add their data
                 let results = poll.querySelectorAll('results');
                 let subArr = [];
                 results.forEach(entry =>{
                     let subResults = entry.querySelectorAll('result');
                     let data = {};
-                    if (results.length > 1) data.numplayers = entry.attributes.numplayers.nodeValue;
                     subResults.forEach(result =>{
                         data[result.attributes.value.nodeValue] = result.attributes.numvotes.nodeValue;
                     })
+                    if (results.length > 1) data.numplayers = entry.attributes.numplayers.nodeValue;
+
                     subArr.push(data);
                 })
+                if (subArr.length > 1) recplayers = subArr.reduce((pre, cur) => {
+                    return (parseInt(cur.Best) > parseInt(pre.Best)) ? cur : pre
+                });
+                
                 arr.push({
                     name: poll.attributes.name.nodeValue,
                     title: poll.attributes.title.nodeValue,
@@ -165,6 +175,7 @@ async function get_game_data(link){
                 year,
                 minplayers,
                 maxplayers,
+                recplayers: recplayers.numplayers,
                 playingtime,
                 minage,
                 description,

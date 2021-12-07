@@ -1,14 +1,14 @@
 const auth = firebase.auth();
 
-const whenSignedIn = document.getElementById('whenSignedIn');
-const whenSignedOut = document.getElementById('whenSignedOut');
+const whenSignedIn  = id('whenSignedIn');
+const whenSignedOut = id('whenSignedOut');
 
-const signInBtn = document.getElementById('signInBtn');
-const signOutBtn = document.getElementById('signOutBtn');
+const signInBtn     = id('signInBtn');
+const signOutBtn    = id('signOutBtn');
 
-const userDetails = document.getElementById('userDetails');
+const userDetails   = id('userDetails');
 
-const provider = new firebase.auth.GoogleAuthProvider();
+const provider      = new firebase.auth.GoogleAuthProvider();
 
 // Sign in event handlers
 
@@ -42,8 +42,8 @@ let unsubscribe;
 auth.onAuthStateChanged(user => {
     if (user) {
         listUpdate.onclick = () => {
+            listUpdate.hidden = true;
             update_database();
         }
     } 
 });
-
